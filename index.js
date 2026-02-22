@@ -70,7 +70,7 @@ async function run() {
     });
 
     
-    //user post api to add user profile to the "users" collection in the "coffeeDB" database
+    //user post api to add user profile to the "users" collection in the "recipeDB" database
     app.post('/users', async (req, res) => {
         const userProfile = req.body;
         console.log(userProfile);
@@ -79,7 +79,7 @@ async function run() {
     });
 
 
-    //To get specific coffee by id from the "coffees" collection in the "coffeeDB" database
+    //To get specific Recipe by id from the "recipes" collection in the "recipeDB" database
     app.get('/recipes/:id', async (req, res) => {
         const id = req.params.id;
         const query = { _id: new ObjectId(id) };
@@ -88,22 +88,22 @@ async function run() {
     });
 
 
-     //Get a list of coffee from the "coffees" collection in the "coffeeDB" database
+     //Get a list of Recipe from the "recipes" collection in the "recipeDB" database
     app.get('/recipes', async (req, res) => {
         const result = await recipeCollection.find().toArray();
         res.send(result);
 
     });
 
-    //Add a new coffee to the "coffees" collection in the "coffeeDB" database
+    //Add a new Recipe to the "recipes" collection in the "recipeDB" database
     app.post('/addRecipes', async (req, res) => {
-      const newCoffee = req.body;
-      console.log(newCoffee);
-      const result = await recipeCollection.insertOne(newCoffee);
+      const newRecipes = req.body;
+      console.log(newRecipes);
+      const result = await recipeCollection.insertOne(newRecipes);
       res.send(result);
     });
 
-    //Delete a coffee from the "coffees" collection in the "coffeeDB" database
+    //Delete a recipe from the "recipes" collection in the "recipeDB" database
     app.delete('/recipes/:id', async (req, res) => {
         const id = req.params.id;
         const query = { _id: new ObjectId(id) }; //make sure to import ObjectId from mongodb
@@ -111,30 +111,50 @@ async function run() {
         res.send(result);
     });
 
-    //Update a coffee in the "coffees" collection in the "coffeeDB" database
-    app.put('/recipes/:id', async (req, res) => {
-        const id = req.params.id;
-        const filter = { _id: new ObjectId(id) };
-        const options = { upsert: true };
-        const updatedRecipe = req.body;
-        const coffee = {
-            $set: //{updatedCoffee}
-            
-            {
-                name: updatedRecipe.name,
-                quantity: updatedRecipe.quantity,
-                supplier: updatedRecipe.supplier,
-                taste: updatedRecipe.taste,
-                category: updatedRecipe.category,
-                details: updatedRecipe.details,
-                photo: updatedRecipe.photo
-            }
-        }
-        const result = await recipeCollection.updateOne(filter, coffee, options);
-        res.send(result);
-    });
 
-    
+    //Update a recipe in the "recipes" collection in the "recipeDB" database
+        app.put('/recipes/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const options = { upsert: true };
+            const updatedRecipe = req.body;
+            
+            const recipe = {
+                $set: {
+                    title: updatedRecipe.title,
+                    image: updatedRecipe.image,
+                    cuisineType: updatedRecipe.cuisineType,
+                    preparationTime: updatedRecipe.preparationTime,
+                    categories: updatedRecipe.categories,
+                    ingredients: updatedRecipe.ingredients,
+                    instructions: updatedRecipe.instructions
+                }
+            }
+            
+            const result = await recipeCollection.updateOne(filter, recipe, options);
+            res.send(result);
+        });
+        const { ObjectId } = require('mongodb');
+
+        // PATCH route to update likeCount
+        app.patch('/recipes/:id', async (req, res) => {
+            const id = req.params.id;
+            const { likeCount } = req.body;
+            
+            const filter = { _id: new ObjectId(id) };
+            const updateDoc = {
+                $set: {
+                    likeCount: likeCount
+                },
+            };
+
+            try {
+                const result = await recipeCollection.updateOne(filter, updateDoc);
+                res.send(result);
+            } catch (error) {
+                res.status(500).send({ message: "Failed to update like count", error });
+            }
+        });
 
 
     // Send a ping to confirm a successful connection
